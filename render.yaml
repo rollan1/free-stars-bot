@@ -1,0 +1,32 @@
+services:
+  - type: web
+    name: free-stars-bot
+    runtime: docker
+    plan: free
+    region: frankfurt
+    dockerfilePath: ./Dockerfile
+    healthCheckPath: /health
+    autoDeploy: true
+    envVars:
+      - key: NODE_ENV
+        value: production
+      - key: PORT
+        value: 10000
+      - key: HOST
+        value: 0.0.0.0
+      - key: DB_PATH
+        value: /app/data/freestars.db
+      - key: APP_NAME
+        value: Free Stars
+      - key: BOT_TOKEN
+        sync: false
+      - key: BOT_USERNAME
+        sync: false
+      - key: OWNER_TELEGRAM_IDS
+        sync: false
+      - key: OWNER_USERNAME
+        sync: false
+      - key: GROUP_URL
+        value: https://t.me/maksimruml
+      - key: PUBLIC_URL
+        sync: false
