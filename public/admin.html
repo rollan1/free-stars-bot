@@ -1,0 +1,181 @@
+<!doctype html>
+<html lang="ru">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+  <meta name="theme-color" content="#0a0907" />
+  <title>Free Stars — админ-панель</title>
+  <script src="https://telegram.org/js/telegram-web-app.js?58"></script>
+  <link rel="stylesheet" href="/styles.css" />
+  <link rel="stylesheet" href="/admin.css" />
+</head>
+<body class="admin-body">
+  <div class="bg-glow" aria-hidden="true"></div>
+
+  <main class="admin">
+    <header class="admin-top">
+      <h1>Free Stars · Админ-панель</h1>
+      <div id="admin-identity" class="admin-identity">—</div>
+    </header>
+
+    <section id="gate" class="card">
+      <h3>Доступ закрыт</h3>
+      <p id="gate-text">Проверяем права…</p>
+    </section>
+
+    <div id="panel" hidden>
+      <nav class="tabs" id="tabs">
+        <button class="tab is-active" data-tab="stats" type="button">Статистика</button>
+        <button class="tab" data-tab="users" type="button">Пользователи</button>
+        <button class="tab" data-tab="wins" type="button">Выигрыши</button>
+        <button class="tab" data-tab="payments" type="button">Платежи</button>
+        <button class="tab" data-tab="odds" type="button">Вероятности</button>
+        <button class="tab" data-tab="finance" type="button">Финансы</button>
+        <button class="tab" data-tab="risk" type="button">Риск</button>
+        <button class="tab" data-tab="logs" type="button">Журналы</button>
+      </nav>
+
+      <section class="tab-panel" data-panel="users">
+        <div class="card">
+          <div class="row-tools">
+            <input type="search" id="users-q" placeholder="Поиск: Telegram ID или @username" />
+            <button class="btn btn-ghost btn-sm" id="users-search" type="button">Найти</button>
+            <button class="btn btn-gold btn-sm" id="users-myid" type="button">Мой ID</button>
+          </div>
+          <div id="users-table" class="table-wrap"></div>
+          <div class="row-tools">
+            <button class="btn btn-ghost btn-sm" id="users-prev" type="button">←</button>
+            <span id="users-page" class="muted">стр. 1</span>
+            <button class="btn btn-ghost btn-sm" id="users-next" type="button">→</button>
+          </div>
+        </div>
+        <div class="card" id="user-card" hidden>
+          <h3 id="user-card-title">Пользователь</h3>
+          <div id="user-card-stats" class="grid"></div>
+          <h3 style="margin-top:18px">Действия владельца</h3>
+          <div class="row-tools">
+            <button class="btn btn-ghost btn-sm" data-ua="spin-random">Случайный спин</button>
+            <button class="btn btn-ghost btn-sm" data-ua="spin-bear">Выдать 🧸 Мишку</button>
+            <button class="btn btn-ghost btn-sm" data-ua="spin-heart">Выдать ❤️ Сердце</button>
+            <button class="btn btn-ghost btn-sm" data-ua="spin-cake">Выдать 🎂 Торт</button>
+            <button class="btn btn-ghost btn-sm" data-ua="spin-none">Пустой результат</button>
+            <button class="btn btn-ghost btn-sm" data-ua="spin-guarantee">Гарантия</button>
+          </div>
+          <div class="row-tools">
+            <button class="btn btn-ghost btn-sm" data-ua="grant-free">Вернуть бесплатный спин</button>
+            <label class="muted">Бонусных спинов:
+              <input id="user-bonus-input" type="number" min="0" step="1" value="20" style="width:80px" />
+            </label>
+            <button class="btn btn-gold btn-sm" data-ua="bonus-set">Выдать</button>
+          </div>
+          <div class="row-tools">
+            <label class="muted">Серия:
+              <input id="user-streak-input" type="number" min="0" step="1" style="width:80px" />
+            </label>
+            <button class="btn btn-ghost btn-sm" data-ua="streak-set">Задать день</button>
+            <button class="btn btn-ghost btn-sm" data-ua="streak-plus">+1 день</button>
+            <button class="btn btn-ghost btn-sm" data-ua="streak-reset">Сбросить серию</button>
+          </div>
+          <div class="row-tools">
+            <button class="btn btn-ghost btn-sm" data-ua="block-on">Заблокировать</button>
+            <button class="btn btn-ghost btn-sm" data-ua="block-off">Разблокировать</button>
+            <button class="btn btn-ghost btn-sm" data-ua="reset-all">Полный сброс</button>
+            <input type="text" id="user-notes" placeholder="Заметка о пользователе" style="flex:1 1 200px" />
+            <button class="btn btn-ghost btn-sm" data-ua="notes">Сохранить заметку</button>
+          </div>
+          <p class="muted">Все действия записываются в журнал администратора. История выигрышей при сбросе не удаляется.</p>
+        </div>
+      </section>
+
+      <div class="filters card">
+        <label>С <input type="date" id="f-from" /></label>
+        <label>По <input type="date" id="f-to" /></label>
+        <button class="btn btn-ghost btn-sm" id="f-reset" type="button">Сбросить</button>
+        <button class="btn btn-ghost btn-sm" id="f-apply" type="button">Применить</button>
+      </div>
+
+      <section class="tab-panel is-active" data-panel="stats">
+        <div id="stats-root" class="grid"></div>
+      </section>
+
+      <section class="tab-panel" data-panel="wins">
+        <div class="card">
+          <div class="row-tools">
+            <input type="search" id="wins-q" placeholder="Поиск: FS-123456, Telegram ID, @username" />
+            <select id="wins-status">
+              <option value="">Все статусы</option>
+              <option value="pending">Ожидает выдачи</option>
+              <option value="delivered">Выдан</option>
+              <option value="cancelled">Отменён</option>
+            </select>
+            <select id="wins-kind">
+              <option value="">Все типы</option>
+              <option value="free">Обычный</option>
+              <option value="paid">Платный</option>
+              <option value="guarantee">Гарантированный</option>
+            </select>
+          </div>
+          <div id="wins-table" class="table-wrap"></div>
+          <div class="row-tools">
+            <button class="btn btn-ghost btn-sm" id="wins-prev" type="button">←</button>
+            <span id="wins-page" class="muted">стр. 1</span>
+            <button class="btn btn-ghost btn-sm" id="wins-next" type="button">→</button>
+            <a class="btn btn-ghost btn-sm" id="wins-export" href="/api/admin/export/wins.csv">CSV</a>
+          </div>
+        </div>
+      </section>
+
+      <section class="tab-panel" data-panel="payments">
+        <div class="card"><div id="payments-table" class="table-wrap"></div></div>
+      </section>
+
+      <section class="tab-panel" data-panel="odds">
+        <div class="card">
+          <h3>Вероятности обычного спина</h3>
+          <p class="muted" id="odds-note"></p>
+          <div id="odds-form" class="odds-form"></div>
+          <p id="odds-warning" class="warn-note">
+            Внимание: изменение применяется только к новым спинам. Уже сделанные спины сохраняют свои вероятности,
+            а гарантия 31-го дня работает отдельно и не отменяется этими значениями.
+          </p>
+          <button class="btn btn-gold" id="odds-save" type="button">Сохранить вероятности</button>
+          <h3 style="margin-top:22px">История изменений</h3>
+          <div id="odds-history" class="table-wrap"></div>
+        </div>
+      </section>
+
+      <section class="tab-panel" data-panel="finance">
+        <div id="finance-root"></div>
+      </section>
+
+      <section class="tab-panel" data-panel="risk">
+        <div id="risk-root"></div>
+      </section>
+
+      <section class="tab-panel" data-panel="logs">
+        <div class="card">
+          <h3>Действия администратора</h3>
+          <div id="admin-log" class="table-wrap"></div>
+          <h3 style="margin-top:20px">Ошибки</h3>
+          <div id="error-log" class="table-wrap"></div>
+        </div>
+      </section>
+    </div>
+  </main>
+
+  <div id="modal" class="modal" hidden>
+    <div class="modal-backdrop" data-close></div>
+    <div class="modal-card" role="dialog" aria-modal="true">
+      <h2 class="modal-title" id="modal-title">—</h2>
+      <div id="modal-body"></div>
+      <div class="row-tools" style="margin-top:16px">
+        <button class="btn btn-ghost btn-sm" type="button" data-close>Отмена</button>
+        <button class="btn btn-gold btn-sm" id="modal-ok" type="button">Подтвердить</button>
+      </div>
+    </div>
+  </div>
+
+  <div id="toast" class="toast" hidden></div>
+  <script src="/admin.js" type="module"></script>
+</body>
+</html>

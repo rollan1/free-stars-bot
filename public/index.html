@@ -1,0 +1,116 @@
+<!doctype html>
+<html lang="ru">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover, maximum-scale=1, user-scalable=no" />
+  <meta name="theme-color" content="#0a0907" />
+  <title>Free Stars</title>
+  <script src="https://telegram.org/js/telegram-web-app.js?58"></script>
+  <link rel="stylesheet" href="/styles.css" />
+</head>
+<body>
+  <main id="app" class="app">
+    <header class="hero">
+      <div class="hero-brand">
+        <p class="hero-kicker">✨ Рулетка подарков</p>
+        <h1 class="hero-title">Free Stars</h1>
+      </div>
+      <button id="btn-history" class="ghost-btn" type="button" aria-label="Мои выигрыши">
+        <span class="ghost-ico">🎁</span>
+        <span id="history-badge" class="badge" hidden>0</span>
+      </button>
+    </header>
+
+    <section id="loader" class="loader">
+      <div class="spinner"></div>
+      <p>Загружаем Free Stars…</p>
+    </section>
+
+    <section id="error-box" class="card error-card" hidden>
+      <h3>Не удалось войти</h3>
+      <p id="error-text"></p>
+      <button class="cta-btn cta-sm" id="btn-retry" type="button">Попробовать снова</button>
+    </section>
+
+    <div id="content" hidden>
+      <section class="wheel-block">
+        <div class="chance-badge" id="chance-badge">Шанс 7%</div>
+        <button class="bonus-btn" id="btn-paid" type="button">
+          <span class="bonus-star">★</span>
+          <span id="bonus-label">+1 спин</span>
+        </button>
+
+        <div class="wheel-stage">
+          <svg id="wheel" viewBox="0 0 320 320" role="img" aria-label="Колесо рулетки Free Stars"></svg>
+          <div class="wheel-pointer" aria-hidden="true">▼</div>
+          <div class="wheel-hub" aria-hidden="true">FREE<br />STARS</div>
+        </div>
+
+        <ul id="odds-line" class="odds-line" aria-label="Шансы выпадения"></ul>
+      </section>
+
+      <section class="series">
+        <div class="series-head">
+          <span class="series-label">Серия</span>
+          <span class="series-info" id="series-info">День 1 из 31</span>
+        </div>
+        <div class="series-scroll" id="series-track"></div>
+      </section>
+
+      <section class="gifts">
+        <div class="gifts-track" id="gifts-track"></div>
+        <button class="gifts-next" id="gifts-next" type="button" aria-label="Ещё подарки">›</button>
+      </section>
+
+      <section class="timer">
+        <p id="timer-text">До бесплатного прокрута: —</p>
+      </section>
+
+      <div class="cta">
+        <button id="btn-main" class="cta-btn" type="button">Крутить бесплатно</button>
+        <button id="btn-secondary" class="cta-sub" type="button">Мои выигрыши</button>
+      </div>
+
+      <footer class="footer">
+        <span class="footer-owner" id="footer-owner">@maxxm4z</span>
+        <button id="btn-rules" class="footer-link" type="button">Правила и шансы</button>
+      </footer>
+    </div>
+  </main>
+
+  <div id="modal-result" class="modal" hidden>
+    <div class="modal-backdrop" data-close></div>
+    <div class="modal-card" role="dialog" aria-modal="true">
+      <div id="result-confetti" class="confetti" aria-hidden="true"></div>
+      <p id="result-kicker" class="result-kicker">—</p>
+      <h2 id="result-title" class="result-title">—</h2>
+      <div id="result-gift-image" class="result-image"></div>
+      <p id="result-text" class="result-text">—</p>
+      <div id="result-meta" class="result-meta" hidden></div>
+      <a id="result-owner-link" class="cta-btn cta-sm" href="https://t.me/maxxm4z" target="_blank" rel="noopener">Написать владельцу @maxxm4z</a>
+      <button id="result-close" class="cta-sub" type="button">Закрыть</button>
+    </div>
+  </div>
+
+  <div id="modal-history" class="modal" hidden>
+    <div class="modal-backdrop" data-close></div>
+    <div class="modal-card modal-wide" role="dialog" aria-modal="true">
+      <h2 class="modal-title">Мои выигрыши</h2>
+      <div id="history-list" class="history-list"></div>
+      <button class="cta-sub" type="button" data-close>Закрыть</button>
+    </div>
+  </div>
+
+  <div id="modal-rules" class="modal" hidden>
+    <div class="modal-backdrop" data-close></div>
+    <div class="modal-card modal-wide" role="dialog" aria-modal="true">
+      <h2 class="modal-title">Правила Free Stars</h2>
+      <ul id="rules-list" class="rules"></ul>
+      <button class="cta-sub" type="button" data-close>Закрыть</button>
+    </div>
+  </div>
+
+  <div id="toast" class="toast" hidden></div>
+  <script src="/app.js" type="module"></script>
+</body>
+</html>

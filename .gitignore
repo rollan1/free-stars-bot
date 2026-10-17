@@ -1,0 +1,12 @@
+node_modules/
+data/
+logs/
+tools/cloudflared.exe
+*.db
+*.db-wal
+*.db-shm
+.env
+.env.local
+npm-debug.log*
+.DS_Store
+Thumbs.db

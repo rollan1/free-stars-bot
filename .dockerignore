@@ -1,0 +1,15 @@
+node_modules
+data
+logs
+.env
+.env.*
+!.env.example
+tests
+tools/cloudflared.exe
+*.db
+*.db-wal
+*.db-shm
+.git
+.gitignore
+npm-debug.log*
+.DS_Store

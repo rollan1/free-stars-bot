@@ -1,0 +1,21 @@
+{
+  "name": "free-stars",
+  "version": "1.0.0",
+  "private": true,
+  "description": "Free Stars - Telegram Mini App gift roulette with Telegram Stars payments",
+  "type": "module",
+  "engines": {
+    "node": ">=24.0.0"
+  },
+  "scripts": {
+    "start": "node server/index.js",
+    "dev": "node --watch server/index.js",
+    "setup:bot": "node server/setup-bot.js",
+    "owner:id": "node tools/owner-id.mjs",
+    "test": "node --test \"tests/*.test.js\""
+  },
+  "dependencies": {
+    "dotenv": "^16.4.7",
+    "express": "^4.21.2"
+  }
+}
