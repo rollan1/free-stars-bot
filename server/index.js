@@ -31,6 +31,8 @@ import {
 import { adminRouter } from './admin.js';
 import { startNotificationWorker, drainQueue } from './notify.js';
 import { deliveryStatus } from './gifts.js';
+import { startAutoPinger } from './pinger.js';
+import { processReferral } from './bot.js';
 
 const app = express();
 app.disable('x-powered-by');
@@ -67,6 +69,7 @@ const requireUser = wrap((req, _res, next) => {
     req.tgUser = validated.user;
     req.userRow = upsertUser(validated.user);
     req.isOwner = isOwner(req.tgUser.id);
+    req.startParam = validated.startParam;
     next();
   } catch (err) {
     next(err);
@@ -110,6 +113,13 @@ app.get('/api/config', (req, res) => {
 });
 
 app.post('/api/session', requireUser, wrap((req, res) => {
+  if (typeof req.startParam === 'string' && req.startParam.startsWith('ref_')) {
+    const referrerId = parseInt(req.startParam.slice(4), 10);
+    if (Number.isFinite(referrerId)) {
+      processReferral(req.tgUser.id, referrerId);
+      req.userRow = db.prepare('SELECT * FROM users WHERE tg_id = ?').get(req.tgUser.id);
+    }
+  }
   res.json({
     user: {
       id: req.tgUser.id,
@@ -261,6 +271,7 @@ const server = app.listen(config.port, config.host, () => {
 });
 
 const notifyWorker = startNotificationWorker();
+const pingerWorker = startAutoPinger();
 
 /**
  * Ежедневная резервная копия SQLite: на бесплатных хостингах диск временный,
@@ -307,6 +318,7 @@ reconcileTimer.unref?.();
 // Graceful shutdown so SQLite is flushed cleanly.
 function shutdown(signal) {
   console.log(`[freestars] ${signal} received, shutting down`);
+  pingerWorker.stop();
   notifyWorker.stop();
   backupWorker.stop();
   stopPump?.();

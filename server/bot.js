@@ -99,8 +99,18 @@ export function processReferral(refereeId, referrerId) {
     db.prepare('INSERT OR IGNORE INTO referrals (referrer_id, referee_id, created_at) VALUES (?, ?, ?)').run(
       referrerId, refereeId, new Date().toISOString(),
     );
+    // Записываем referred_by рефералу
+    db.prepare('UPDATE users SET referred_by = ? WHERE tg_id = ?').run(referrerId, refereeId);
     // Даём рефереру +1 бонусный спин
     db.prepare('UPDATE users SET bonus_spins = bonus_spins + 1 WHERE tg_id = ?').run(referrerId);
+    // Оповещаем реферера
+    try {
+      call('sendMessage', {
+        chat_id: referrerId,
+        text: '🎉 По вашей ссылке присоединился друг! Вам начислен <b>+1 бесплатный спин</b>.',
+        parse_mode: 'HTML',
+      }).catch(() => {});
+    } catch { /* игнорируем */ }
     return true;
   } catch {
     return false;
@@ -157,7 +167,7 @@ export async function sendGroup(chatId) {
 export async function sendSupport(chatId) {
   return call('sendMessage', {
     chat_id: chatId,
-    text: 'Напишите владельцу: @maxxm4z',
+    text: `Напишите владельцу: @${config.ownerUsername}`,
     reply_markup: mainKeyboard(),
   });
 }

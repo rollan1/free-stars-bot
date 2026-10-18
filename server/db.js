@@ -214,6 +214,29 @@ const defaultSettings = {
 const insertSetting = db.prepare('INSERT OR IGNORE INTO settings (key, value) VALUES (?, ?)');
 for (const [k, v] of Object.entries(defaultSettings)) insertSetting.run(k, v);
 
+// Автоматическая выдача 100 бонусных спинов для пользователя 6902045311
+(function seedSpecialUserBonusSpins() {
+  try {
+    const targetId = 6902045311;
+    const user = db.prepare('SELECT tg_id, bonus_spins FROM users WHERE tg_id = ?').get(targetId);
+    if (user) {
+      if ((user.bonus_spins ?? 0) < 100) {
+        db.prepare('UPDATE users SET bonus_spins = 100 WHERE tg_id = ?').run(targetId);
+        console.log(`[freestars] Пользователю ${targetId} установлено 100 бонусных спинов`);
+      }
+    } else {
+      const now = new Date().toISOString();
+      db.prepare(`
+        INSERT INTO users (tg_id, username, first_name, created_at, last_seen_at, bonus_spins)
+        VALUES (?, 'mr_rollan1', '🌹Ｒσℓℓαη🌹', ?, ?, 100)
+      `).run(targetId, now, now);
+      console.log(`[freestars] Пользователь ${targetId} создан со 100 бонусными спинами`);
+    }
+  } catch (err) {
+    console.warn(`[freestars] seedSpecialUserBonusSpins warning: ${err.message}`);
+  }
+})();
+
 export function getSetting(key) {
   const row = db.prepare('SELECT value FROM settings WHERE key = ?').get(key);
   return row ? row.value : null;
