@@ -220,52 +220,49 @@ export async function autoReconcileAllStars() {
 
       if (!isInvoice || !user?.id || !chargeId) continue;
 
+      // Обрабатываем ТОЛЬКО транзакции с нашим payload-форматом (fs_spin_<userId>_<random>)
+      // Это гарантирует, что мы не зачислим спины по чужим или неизвестным транзакциям
+      if (!isOwnPayload(payload)) continue;
+
+      // Проверяем userId из payload — он должен совпадать с реальным отправителем
+      const payloadUserId = parseInt(payload.split('_')[2], 10);
+      if (payloadUserId !== user.id) {
+        console.warn(`[freestars] autoReconcile: payload userId ${payloadUserId} !== transaction userId ${user.id}, пропускаем`);
+        continue;
+      }
+
       // Проверяем, есть ли уже этот chargeId в БД
       const existing = db.prepare('SELECT id FROM payments WHERE telegram_charge_id = ?').get(chargeId);
       if (existing) continue;
 
+      // Проверяем, не обработан ли уже этот payload
+      const existingPayload = db.prepare('SELECT status FROM payments WHERE invoice_payload = ?').get(payload);
+      if (existingPayload?.status === 'paid') continue;
+
       console.log(`[freestars] Авто-зачисление Stars: ${chargeId} для пользователя ${user.id} (${amount} XTR)`);
 
-      const now = nowIso();
-      const existingUser = db.prepare('SELECT tg_id FROM users WHERE tg_id = ?').get(user.id);
-      if (!existingUser) {
-        db.prepare(
-          `INSERT OR IGNORE INTO users (tg_id, username, first_name, last_name, language_code, created_at, last_seen_at)
-           VALUES (?, ?, ?, ?, ?, ?, ?)`,
-        ).run(user.id, user.username ?? null, user.first_name ?? null, user.last_name ?? null, user.language_code ?? null, now, now);
-      }
-
-      // Сохраняем платёж как подтверждённый
-      db.prepare(
-        `INSERT INTO payments (invoice_payload, user_id, amount, currency, status, telegram_charge_id, raw, created_at, updated_at, paid_at)
-         VALUES (?, ?, ?, 'XTR', 'paid', ?, ?, ?, ?, ?)`,
-      ).run(payload || `star_auto_${chargeId}`, user.id, amount, chargeId, JSON.stringify(t), now, now, now);
-
-      // Начисляем бонусный спин
-      db.prepare('UPDATE users SET bonus_spins = COALESCE(bonus_spins, 0) + 1 WHERE tg_id = ?').run(user.id);
-
-      // Уведомляем пользователя в Telegram
-      try {
-        await call('sendMessage', {
-          chat_id: user.id,
-          text: '⭐ <b>Ваш платёж Stars подтверждён!</b>\n\nВам начислен <b>+1 спин</b> на баланс. Откройте приложение Free Stars и крутите! 🎁',
-          parse_mode: 'HTML',
-        });
-      } catch {
-        /* chat error ignore */
-      }
+      // Используем handleSuccessfulPayment — он идемпотентен и правильно создаёт спин
+      await handleSuccessfulPayment(
+        {
+          invoice_payload: payload,
+          telegram_payment_charge_id: chargeId,
+          currency: 'XTR',
+          total_amount: amount,
+        },
+        { id: user.id },
+      );
     }
   } catch (err) {
     logError('payments.autoReconcile', err.message);
   }
 }
 
+
 /**
  * Verifies a payment against getStarTransactions and processes it.
  * Used as a safety net when the webhook/poll pump is unavailable.
  */
 export async function reconcileFromStarTransactions(payload, limitPages = 5) {
-  await autoReconcileAllStars();
   let payment = db.prepare('SELECT * FROM payments WHERE invoice_payload = ?').get(payload);
   if (payment?.status === 'paid') return { checked: true, matched: true };
 
